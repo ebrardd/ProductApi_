@@ -8,6 +8,7 @@ namespace ProductApi_.Configs
         public void HandleStockLow(Product product)
         {
             Console.WriteLine($"Warning: The stock for product {product.Name} is low (current stock: {product.Stock}).");
+            Console.WriteLine($"Warning: The stock for product {product.Name} is low (current stock: {product.Stock}).");
         }
     }
 }

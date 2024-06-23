@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "YwdxgzorK9M=",
+  "dgSpecHash": "PBwhpCmq2OI=",
   "success": true,
-  "projectFilePath": "C:\\Users\\PC\\source\\repos\\ProductApi_\\ProductApi_\\ProductApi_.csproj",
+  "projectFilePath": "C:\\Users\\PC\\Documents\\GitHub\\ProductApi_\\ProductApi_\\ProductApi_.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\PC\\.nuget\\packages\\awssdk.core\\3.7.100.14\\awssdk.core.3.7.100.14.nupkg.sha512",
     "C:\\Users\\PC\\.nuget\\packages\\awssdk.securitytoken\\3.7.100.14\\awssdk.securitytoken.3.7.100.14.nupkg.sha512",

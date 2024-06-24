@@ -1,16 +1,14 @@
-﻿
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
-using NuGet.Configuration;
 using ProductApi_.Configs;
+using ProductApi_.Properties;
+using ProductApi_.Repositories;
 using ProductApi_.Services;
-using Swashbuckle.AspNetCore;
-
 
 namespace ProductApi_
 {
@@ -23,8 +21,10 @@ namespace ProductApi_
         {
             Console.WriteLine($"Environment: {env.EnvironmentName}");
             var builder = new ConfigurationBuilder()
-            .SetBasePath(env.ContentRootPath)
-            .AddEnvironmentVariables();
+                .SetBasePath(env.ContentRootPath)
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .AddEnvironmentVariables();
+
             Configuration = builder.Build();
             var envVariables = Environment.GetEnvironmentVariables();
             if (string.IsNullOrWhiteSpace(envVariables["ASPNETCORE_ENVIRONMENT"]?.ToString()))
@@ -35,29 +35,43 @@ namespace ProductApi_
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddCors(options => // Cross Origin Source
+            var allowedOrigins = Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+
+            if (allowedOrigins == null || allowedOrigins.Length == 0)
             {
-                options.AddPolicy("AllowAll", builder =>
+                throw new Exception("No CORS origins configured.");
+            }
+
+            services.Configure<Settings>(Configuration.GetSection("Settings"));
+            services.Configure<MongoDBSettings>(Configuration.GetSection("MongoDBSettings"));
+            services.AddSingleton<IMongoDBSettings>(sp => sp.GetRequiredService<IOptions<MongoDBSettings>>().Value);
+
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowSpecificOrigins", builder =>
                 {
                     builder
-                .WithOrigins("*")
-                .AllowAnyMethod()
-                .AllowAnyHeader()
-                .AllowCredentials();
+                        .WithOrigins(allowedOrigins)
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials();
                 });
             });
+
             services.AddControllers();
             services.AddEndpointsApiExplorer();
-            services.AddSwaggerGen();
-            services.AddSingleton(_settings);
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Product API", Version = "v1" });
+            });
             services.AddResponseCompression();
+            services.AddSingleton<IRepository, Repository>();
             services.AddSingleton<IService, Service>();
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
@@ -70,15 +84,23 @@ namespace ProductApi_
                 app.UseHsts();
             }
 
-            app.UseCors("AllowAll");
-            app.UseHttpsRedirection();//
+            app.UseCors("AllowSpecificOrigins");
+            app.UseHttpsRedirection();
             app.UseStaticFiles();
-            app.UseAuthorization();//
-            app.UseResponseCompression();
             app.UseRouting();
-            app.UseSwaggerUI();
+            app.UseAuthorization();
+            app.UseResponseCompression();
             app.UseSwagger();
-            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Product API V1");
+                c.RoutePrefix = string.Empty;
+            });
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
         }
+
     }
 }

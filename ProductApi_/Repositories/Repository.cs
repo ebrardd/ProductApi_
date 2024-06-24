@@ -13,9 +13,11 @@ namespace ProductApi_.Repositories
         private readonly IMongoCollection<Models.Product> productCollection;
         private readonly IMongoCollection<Order> orderCollection;
         private readonly ILogger<Repository> _logger;
+        private readonly IMongoDBSettings _mongodbSettings;
 
-        public Repository(MongoDBSettings mongoDBSettings, ILogger<Repository> logger)
+        public Repository(IMongoDBSettings mongoDBSettings, ILogger<Repository> logger)
         {
+            _mongodbSettings = mongoDBSettings;
             var client = new MongoClient(mongoDBSettings.ConnectionUri);
             var database = client.GetDatabase(mongoDBSettings.DatabaseName);
             productCollection = database.GetCollection<Product>(mongoDBSettings.CollectionName1);
@@ -127,7 +129,7 @@ namespace ProductApi_.Repositories
             return totalStock;
         }
 
-        
+
         public Task<Product> GetProductById(int id)
         {
             throw new NotImplementedException();
@@ -144,5 +146,5 @@ namespace ProductApi_.Repositories
         }
     }
 }
-   
+
 

@@ -29,10 +29,10 @@ namespace ProductApi_.V1.Controller
         {
             var products = _service.GetProducts();
 
-            if (products is null|| !products.Any())
+            if (products is null || !products.Any())
             {
                 return NotFound();
-            } 
+            }
 
             else
 
@@ -64,10 +64,10 @@ namespace ProductApi_.V1.Controller
                     return BadRequest("Product Id mismatch");
 
                 var ProductToUpdate = await _service.GetProductById(id);
-                
+
                 if (ProductToUpdate is null)
                     return NotFound($"Product with Id = {id} not found");
-            
+
 
                 var UpdatedProduct = await _service.UpdateProduct(id, product);
 
@@ -126,15 +126,16 @@ namespace ProductApi_.V1.Controller
 
             try
             {
-                _service.CreateOrder(order); 
+                _service.CreateOrder(order);
                 return Ok("Order created successfully.");
             }
             catch (Exception ex)
             {
-               
+
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        [HttpGet("CheckStockAsync/{id}")]
         public async Task CheckStockAsync(int productId)
         {
             HttpClient client = new HttpClient();
